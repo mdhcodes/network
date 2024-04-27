@@ -12,13 +12,16 @@ from .forms import CreatePostForm
 def index(request):
 
     """
-    All Posts: The “All Posts” link in the navigation bar should take the user to a page where they can see all posts from all users, with the most recent posts first. 
+    All Posts: The “All Posts” link in the navigation bar should take the user to a page where they can see all posts from all users, with the most recent posts first.
+    https://docs.djangoproject.com/en/5.0/ref/models/querysets/#order-by - The negative sign in front of "-created" indicates descending order.
     """
-    
+    all_posts = Post.objects.all().order_by('-created')
+
     # Include the “New Post” form before “All Posts” on index.html. 
     form = CreatePostForm()
 
     context = {
+        "all_posts": all_posts,
         "form": form
     }
 
@@ -78,7 +81,7 @@ def register(request):
     
 
 """
-New Post: Authenticated users may write a new text-based post. 
+New Post: Authenticated users may write a new text-based post. The number of “likes” the post has will be 0 to start.   
 """ 
 
 def new_post(request):
@@ -87,7 +90,6 @@ def new_post(request):
         newPost = CreatePostForm(request.POST)
 
         user_name = request.user
-        print('User:', user_name)
 
         title = newPost['title'].value()
         post = newPost['post'].value()

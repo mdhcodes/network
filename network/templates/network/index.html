@@ -10,4 +10,24 @@
             <button type="submit" class="btn btn-primary">Post</button>
         </form>
     {% endif %}
+    
+    
+    {% comment %} 
+    All Posts: Each post should include the username of the poster, the post content itself, the date and time at which the post was made, 
+    and the number of “likes” the post has. 
+    {% endcomment %}
+
+    {% for post in all_posts %}
+    <hr>
+    <div class="posts">{% comment %} CSS Border style is not working. Using hr as a fix for now. {% endcomment %}
+        <p>Title: {{ post.title }}</p>
+        <p>{{ post.post }}</p>
+        <p>Author: {{ post.author }}</p>
+        <p>{{ post.created }}</p>
+        {% comment %} <p><span style="color: red">&#x2764;</span>{{ post.likes }}</p> {% endcomment %}
+        <p><span class="fa-solid fa-heart" style="color: red;"></span>{{ post.likes }}</p>        
+    </div>
+    <hr>
+    {% endfor %}
+
 {% endblock %}
