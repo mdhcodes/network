@@ -18,10 +18,12 @@
               <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="#"><strong>{{ user.username }}</strong></a>
+                        {% comment %} Clicking on a username should load that user’s profile page. {% endcomment %}
+                        <a class="nav-link" href="{% url 'profile' user.id %}"><strong>{{ user.username }}</strong></a>
                     </li>
                 {% endif %}
                 <li class="nav-item">
+                    {% comment %} The “All Posts” link will take the user to the index page where they can see all posts from all users. {% endcomment %}
                   <a class="nav-link" href="{% url 'index' %}">All Posts</a>
                 </li>
                 {% if user.is_authenticated %}

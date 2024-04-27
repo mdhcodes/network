@@ -18,8 +18,7 @@
     {% endcomment %}
 
     {% for post in all_posts %}
-    <hr>
-    <div class="posts">{% comment %} CSS Border style is not working. Using hr as a fix for now. {% endcomment %}
+    <div class="posts">
         <p>Title: {{ post.title }}</p>
         <p>{{ post.post }}</p>
         <p>Author: {{ post.author }}</p>
@@ -27,7 +26,6 @@
         {% comment %} <p><span style="color: red">&#x2764;</span>{{ post.likes }}</p> {% endcomment %}
         <p><span class="fa-solid fa-heart" style="color: red;"></span>{{ post.likes }}</p>        
     </div>
-    <hr>
     {% endfor %}
 
 {% endblock %}

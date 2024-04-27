@@ -1,8 +1,14 @@
-.posts {
-    border: thin solid black;
-    outline: 1px solid black;
+body {    
+    box-sizing: border-box;
+    margin: 1em;
 }
 
-body {
-    background-color: blueviolet;
+.posts {
+    border: 1px solid gray;
+    margin-top: .5em; 
+}
+
+.follow {
+    display: inline-block;
+    margin-right: .5em;
 }

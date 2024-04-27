@@ -1,0 +1,33 @@
+{% extends 'network/layout.html' %}
+
+{% block body %}
+
+    <h2>{{ user_name }}'s Profile Page</h2>
+
+    {% comment %} Display all of the posts for that user, in reverse chronological order. {% endcomment %}
+    {% for post in all_posts %}
+        <div class="posts">
+            <p>Title: {{ post.title }}</p>
+            <p>{{ post.post }}</p>
+            <p>Author: {{ post.author }}</p>
+            <p>{{ post.created }}</p>
+            {% comment %} <p><span style="color: red">&#x2764;</span>{{ post.likes }}</p> {% endcomment %}
+            <p><span class="fa-solid fa-heart" style="color: red;"></span>{{ post.likes }}</p>        
+        </div>
+    {% endfor %}
+
+    {% comment %} Display number of followers the user has and the number of people the user follows. {% endcomment %}
+    <p>Number of Followers: {{ all_followers }}</p>
+    <p>Number Following: {{ all_following }}</p>
+
+    {% comment %} 
+    Display all other users who are signed in.
+    For any other user who is signed in, display a “Follow” or “Unfollow” button that will let the current user toggle whether or not they are following this user’s posts. 
+    {% endcomment %}
+    <p>Other users online now:</p>
+    {% for user in signed_in_users %}
+        <p class="follow">{{ user }}</p><button >Follow</button><button >Unfollow</button>
+    {% endfor %}
+    
+
+{% endblock %}
