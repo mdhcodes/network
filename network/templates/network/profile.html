@@ -1,4 +1,5 @@
 {% extends 'network/layout.html' %}
+{% load static %}
 
 {% block body %}
 
@@ -45,25 +46,23 @@
     
     <p>Other users online now:</p>
     {% for user in signed_in_users %}
-            <p class="follow">{{ user }}</p> 
-            {% comment %} For every loop is_following = i {% endcomment %}
-            {% for i in is_following %}
-                {% if i or followed %} 
+        <p class="follow">{{ user }}</p>
+        {% comment %} If signed_in_user id is in current_user_is_following_ids, the current user is following them. {% endcomment %}
+        {% if user.id in current_user_is_following_ids %}             
+            <form action="{% url 'unfollow' user %}" method="post" class="follow" id="follow"> 
+                {% csrf_token %} 
+                <button type="submit">Unfollow</button>
+            </form>
+        {% else %}             
+            <form action="{% url 'follow' user %}" method="post" class="follow" id="unfollow">
+                {% csrf_token %}  
+                <button type="submit">Follow</button>
+            </form>
+        {% endif %} 
+    {% endfor %}    
 
-                    <form action="{% url 'unfollow' user %}" method="post" class="follow"> 
-                        {% csrf_token %} 
-                        <button type="submit">Unfollow</button>
-                    </form>
-                {% else %}             
-                    <form action="{% url 'follow' user %}" method="post" class="follow">
-                        {% csrf_token %}  
-                        <button type="submit">Follow</button>
-                    </form>
+{% endblock %}
 
-                {% endif %}                
-            {% endfor %}
-
-    {% endfor %}
-    
-
+{% block script %}
+    <script src="{% static 'network/network.js' %}"></script>
 {% endblock %}

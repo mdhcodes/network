@@ -159,25 +159,38 @@ def profile(request, id):
 
     # For any other user who is signed in, display a “Follow” or “Unfollow” button that will let the current user toggle whether or not they are following this user’s posts. 
     # If the current user is not following a signed in user, they may follow them. If the current user is following a signed in user, they may unfollow them.
-    # 
-
-    ######!!!!!! REFER TO MAIL READ-UNREAD / ARCHIVE-UNARCHIVE TO IMPLEMENT FOLLOW-UNFOLLOW !!!!!!######
-
+    #     
     current_user_is_following = user.followers.values_list('user_follows_id', flat=True)
-    # print('current_user_is_following:', current_user_is_following)
+    current_user_is_following_ids = []
+    for i in current_user_is_following:
+        current_user_is_following_ids.append(i)
+
+    print('current_user_is_following:', current_user_is_following)    
+    print('current_user_is_following_ids:', current_user_is_following_ids)
 
     # is_following = signed_in_users in current_user_is_following.filter(user_follows=)
-    is_following = []
+    # is_following = Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_follow_id)
 
-    for i in signed_in_users.values_list('id', flat=True):
-        for j in current_user_is_following:
-            # print('Signed in Users i:', i)
-            # print('Following j:', j)
-            # print('i and j:', i,j)
-            if i == j:
-                is_following.append(True)
-            else:
-                is_following.append(False) 
+    # is_following = {}
+    # for i in signed_in_users.values_list('id', flat=True):
+    #     # print('i:', i)
+    #     for j in current_user_is_following_ids:
+    #         # print('j:', j)
+    #         if i == j:
+    #             is_following[i] = True    
+        
+        # if i == Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=i):
+            # is_following.append(Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=i))
+
+    # for i in signed_in_users.values_list('id', flat=True):
+    #     for j in current_user_is_following:
+    #         # print('Signed in Users i:', i)
+    #         # print('Following j:', j)
+    #         # print('i and j:', i,j)
+    #         if i == j:
+    #             is_following.append(True)
+    #         else:
+    #             is_following.append(False) 
 
     # is_following = all(i in signed_in_users for i in user.following.all())
     # print('Is Following:', is_following)
@@ -186,18 +199,14 @@ def profile(request, id):
     
     # print('User Followers All:', user.followers.all())
 
-    # Identify which users are being followed by the current user.
-    followed = is_following    
-    # print('Followed:', followed)
-
     context = {
         'user_name': user_name,
         'all_followers': all_followers,
         'all_following': all_following,
         'all_posts': all_posts,
         'signed_in_users': signed_in_users,
-        'is_following': is_following,
-        'followed': followed
+        # 'is_following': is_following,
+        'current_user_is_following_ids': current_user_is_following_ids
     }
 
     return render(request, 'network/profile.html', context)
@@ -223,14 +232,27 @@ def follow(request, user):
     )
 
     # followed should be TRUE   
-    followed = Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_follow_id)
+    # followed = Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_follow_id)
     # print('Followed:', followed) # Returns all matches
     # https://stackoverflow.com/questions/1387727/checking-for-empty-queryset-in-django
     # Check if QuerySet is empty
-    if not followed:
-        followed = False
-    else:
-        followed = True
+    # if not followed:
+    #     followed = False
+    # else:
+    #     followed = True
+
+    # print('Followed in Follow:', followed)
+
+
+    user = User.objects.get(id=user_id) # ID for the current user.
+    current_user_is_following = user.followers.values_list('user_follows_id', flat=True)
+    current_user_is_following_ids = []
+    for i in current_user_is_following:
+        current_user_is_following_ids.append(i)
+
+    print('current_user_is_following:', current_user_is_following)
+    
+    print('current_user_is_following_ids:', current_user_is_following_ids)
 
     # Send all necessary data to build profile.html again.
     user_name = request.user
@@ -240,16 +262,17 @@ def follow(request, user):
     all_following = len(user.followers.all())
     all_posts = user.user.all().order_by('-created')
     signed_in_users = User.objects.filter(signed_in=True).exclude(id=user_id)
-    is_following = signed_in_users in user.following.all()
+    # is_following = signed_in_users in user.following.all()
 
     context = {           
-        'followed': followed,     
+        # 'followed': followed,     
         'user_name': user_name,
         'all_followers': all_followers,
         'all_following': all_following,
         'all_posts': all_posts,
         'signed_in_users': signed_in_users,
-        'is_following': is_following
+        # 'is_following': is_following
+        'current_user_is_following_ids': current_user_is_following_ids
     }
 
     # return HttpResponseRedirect(reverse('profile', args=(user_id,))) # To send context to profile.html, I must render because reverse only returns a url string.
@@ -266,7 +289,27 @@ def unfollow(request, user):
     # followed should be FALSE
     # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models
     # Remove the row with the current user and the user to unfollow from the database.
-    followed = Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_unfollow_id).delete()
+    # followed = Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_unfollow_id).delete()
+    
+    # if not followed:
+    #     followed = False
+    # else:
+    #     followed = True
+
+    # print('Followed in Unfollow:', followed)
+
+    Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_unfollow_id).delete()
+
+    user = User.objects.get(id=user_id) # ID for the current user.
+    current_user_is_following = user.followers.values_list('user_follows_id', flat=True)
+    current_user_is_following_ids = []
+    for i in current_user_is_following:
+        current_user_is_following_ids.append(i)
+
+    print('current_user_is_following:', current_user_is_following)
+    
+    print('current_user_is_following_ids:', current_user_is_following_ids)
+    
 
     # Send all necessary data to build profile.html again.
     user_name = request.user
@@ -276,16 +319,17 @@ def unfollow(request, user):
     all_following = len(user.followers.all())
     all_posts = user.user.all().order_by('-created')
     signed_in_users = User.objects.filter(signed_in=True).exclude(id=user_id)
-    is_following = signed_in_users in user.following.all()
+    # is_following = signed_in_users in user.following.all()
 
     context = {          
-        'followed': followed,     
+        # 'followed': followed,     
         'user_name': user_name,
         'all_followers': all_followers,
         'all_following': all_following,
         'all_posts': all_posts,
         'signed_in_users': signed_in_users,
-        'is_following': is_following
+        'current_user_is_following_ids': current_user_is_following_ids
+        # 'is_following': is_following
     }
 
     # return HttpResponseRedirect(reverse('profile', args=(user_id,)))
@@ -309,7 +353,7 @@ def following(request, id):
 
     user = User.objects.get(id=id)
     all_following = user.followers.all()
-    print('All Following', all_following)
+    # print('All Following', all_following)
 
     all_following_ids = []
     for i in all_following:

@@ -30,15 +30,7 @@ class Post(models.Model):
 class Follow(models.Model):
     user_follows = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
     following_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
-    # follow = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user_follows}"
         # return f"{self.following_user} is following {self.user_follows}"
-
-    # def serialize(self):
-    #     return {
-    #         'following': self.user_follows,
-    #         'follower': self.following_user,
-    #         'follow': self.follow
-    #     }
