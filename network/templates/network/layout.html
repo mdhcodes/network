@@ -23,12 +23,13 @@
                     </li>
                 {% endif %}
                 <li class="nav-item">
-                    {% comment %} The “All Posts” link will take the user to the index page where they can see all posts from all users. {% endcomment %}
+                    {% comment %} The "All Posts" link will take the user to the index page where they will view all posts from all users. {% endcomment %}
                   <a class="nav-link" href="{% url 'index' %}">All Posts</a>
                 </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Following</a>
+                        {% comment %} The "Following" link will take the user to the following page where they will view all posts made by users that they follow. {% endcomment %}
+                        <a class="nav-link" href="{% url 'following' user.id %}">Following</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout' %}">Log Out</a>

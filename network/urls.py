@@ -11,5 +11,11 @@ urlpatterns = [
     # Add path to create a new post.
     path("new_post", views.new_post, name="new_post"),
     # Add path to user's profile page.
-    path("profile/<int:id>", views.profile, name="profile")
+    path("profile/<int:id>", views.profile, name="profile"),
+    # Add path to follow a user.
+    path("follow/<str:user>", views.follow, name="follow"),
+    # Add path to unfollow a user.
+    path("unfollow/<str:user>", views.unfollow, name="unfollow"),
+    # Add path to following page.
+    path("following<int:id>", views.following, name="following")
 ]

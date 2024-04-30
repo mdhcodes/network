@@ -24,9 +24,45 @@
     Display all other users who are signed in.
     For any other user who is signed in, display a “Follow” or “Unfollow” button that will let the current user toggle whether or not they are following this user’s posts. 
     {% endcomment %}
+
+    {% comment %} 
     <p>Other users online now:</p>
     {% for user in signed_in_users %}
-        <p class="follow">{{ user }}</p><button >Follow</button><button >Unfollow</button>
+            <p class="follow">{{ user }}</p>
+            {% if is_following or followed %} 
+                <form action="{% url 'unfollow' user %}" method="post" class="follow"> 
+                    {% csrf_token %} 
+                    <button type="submit">Unfollow</button>
+                </form>
+            {% else %}             
+                <form action="{% url 'follow' user %}" method="post" class="follow">
+                    {% csrf_token %}  
+                    <button type="submit">Follow</button>
+                </form>
+            {% endif %}
+    {% endfor %}
+    {% endcomment %}
+    
+    <p>Other users online now:</p>
+    {% for user in signed_in_users %}
+            <p class="follow">{{ user }}</p> 
+            {% comment %} For every loop is_following = i {% endcomment %}
+            {% for i in is_following %}
+                {% if i or followed %} 
+
+                    <form action="{% url 'unfollow' user %}" method="post" class="follow"> 
+                        {% csrf_token %} 
+                        <button type="submit">Unfollow</button>
+                    </form>
+                {% else %}             
+                    <form action="{% url 'follow' user %}" method="post" class="follow">
+                        {% csrf_token %}  
+                        <button type="submit">Follow</button>
+                    </form>
+
+                {% endif %}                
+            {% endfor %}
+
     {% endfor %}
     
 

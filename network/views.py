@@ -4,6 +4,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
+from django.contrib.auth.decorators import login_required
+
 from .models import User, Post, Follow
 
 from .forms import CreatePostForm
@@ -16,6 +18,7 @@ def index(request):
     https://docs.djangoproject.com/en/5.0/ref/models/querysets/#order-by - The negative sign in front of "-created" indicates descending order.
     """
     all_posts = Post.objects.all().order_by('-created')
+    print('All Index Posts:', all_posts )
 
     # Include the “New Post” form before “All Posts” on index.html. 
     form = CreatePostForm()
@@ -119,23 +122,27 @@ def new_post(request):
         return HttpResponseRedirect(reverse('index'))
     
 
-    """
-    Profile Page: Display the number of followers the user has, as well as the number of people that the user follows.
-    Display all of the posts for that user, in reverse chronological order. 
-    For any other user who is signed in, this page should also display a “Follow” or “Unfollow” button that will let the current user toggle whether or not they are following this user’s posts. 
-    (Note that this only applies to any “other” user: a user should not be able to follow themselves.)
-    """
+"""
+Profile Page: Display the number of followers the user has, as well as the number of people that the user follows.
+Display all of the posts for that user, in reverse chronological order. 
+For any other user who is signed in, this page should also display a “Follow” or “Unfollow” button that will let the current user toggle whether or not they are following this user’s posts. 
+(Note that this only applies to any “other” user: a user should not be able to follow themselves.)
+"""
 
 def profile(request, id):
 
     user_name = request.user
+    # print('Current User:', user_name)
+    user_id = request.user.id
     
     # Get number of followers the user has and the number of people the user follows.
     # https://stackoverflow.com/questions/58794639/how-to-make-follower-following-system-with-django-model
-    user = User.objects.get(id=id)
-    all_followers = len(user.followers.all())
+    user = User.objects.get(id=id) # ID for the current user.
+    # all_followers are users who are following the current user.
+    all_followers = len(user.following.all())
     # print('Followers:', all_followers)
-    all_following = len(user.following.all())
+    # all_following are all users who the current user is following. 
+    all_following = len(user.followers.all())
     # print('Following:', all_following)
 
     # Display all of the posts for that user, in reverse chronological order.
@@ -148,17 +155,187 @@ def profile(request, id):
     # https://docs.djangoproject.com/en/5.0/topics/db/queries/#retrieving-specific-objects-with-filters
     # exclude(**kwargs) - Returns a new QuerySet containing objects that do not match the given lookup parameters.
     signed_in_users = User.objects.filter(signed_in=True).exclude(id=id)
-    print('Signed in Users:', signed_in_users)
+    # print('Signed in Users:', signed_in_users)
 
     # For any other user who is signed in, display a “Follow” or “Unfollow” button that will let the current user toggle whether or not they are following this user’s posts. 
+    # If the current user is not following a signed in user, they may follow them. If the current user is following a signed in user, they may unfollow them.
+    # 
+
+    ######!!!!!! REFER TO MAIL READ-UNREAD / ARCHIVE-UNARCHIVE TO IMPLEMENT FOLLOW-UNFOLLOW !!!!!!######
+
+    current_user_is_following = user.followers.values_list('user_follows_id', flat=True)
+    # print('current_user_is_following:', current_user_is_following)
+
+    # is_following = signed_in_users in current_user_is_following.filter(user_follows=)
+    is_following = []
+
+    for i in signed_in_users.values_list('id', flat=True):
+        for j in current_user_is_following:
+            # print('Signed in Users i:', i)
+            # print('Following j:', j)
+            # print('i and j:', i,j)
+            if i == j:
+                is_following.append(True)
+            else:
+                is_following.append(False) 
+
+    # is_following = all(i in signed_in_users for i in user.following.all())
+    # print('Is Following:', is_following)
     
+    # print('User Following All:', user.following.all())
+    
+    # print('User Followers All:', user.followers.all())
+
+    # Identify which users are being followed by the current user.
+    followed = is_following    
+    # print('Followed:', followed)
 
     context = {
         'user_name': user_name,
         'all_followers': all_followers,
         'all_following': all_following,
         'all_posts': all_posts,
-        'signed_in_users': signed_in_users
+        'signed_in_users': signed_in_users,
+        'is_following': is_following,
+        'followed': followed
     }
 
     return render(request, 'network/profile.html', context)
+
+
+"""
+Follow and Unfollow Functions
+"""
+
+def follow(request, user):
+
+    user_id = request.user.id
+
+    # user_to_follow = user # user == user_name and I need the user's id
+    user_to_follow_id = User.objects.get(username=user).id
+    # print('user_to_follow_id:', user_to_follow_id)
+
+    # https://medium.com/@abdullafajal/step-by-step-guide-to-implement-follow-unfollow-functionality-in-django-f98dd501aa36
+    # Create a row with the current user and the user to follow to the database.
+    Follow.objects.create(
+        following_user_id=user_id, #follower
+        user_follows_id=user_to_follow_id #following
+    )
+
+    # followed should be TRUE   
+    followed = Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_follow_id)
+    # print('Followed:', followed) # Returns all matches
+    # https://stackoverflow.com/questions/1387727/checking-for-empty-queryset-in-django
+    # Check if QuerySet is empty
+    if not followed:
+        followed = False
+    else:
+        followed = True
+
+    # Send all necessary data to build profile.html again.
+    user_name = request.user
+
+    user = User.objects.get(id=user_id)
+    all_followers = len(user.following.all())
+    all_following = len(user.followers.all())
+    all_posts = user.user.all().order_by('-created')
+    signed_in_users = User.objects.filter(signed_in=True).exclude(id=user_id)
+    is_following = signed_in_users in user.following.all()
+
+    context = {           
+        'followed': followed,     
+        'user_name': user_name,
+        'all_followers': all_followers,
+        'all_following': all_following,
+        'all_posts': all_posts,
+        'signed_in_users': signed_in_users,
+        'is_following': is_following
+    }
+
+    # return HttpResponseRedirect(reverse('profile', args=(user_id,))) # To send context to profile.html, I must render because reverse only returns a url string.
+    return render(request, 'network/profile.html', context)
+
+
+def unfollow(request, user):
+
+    user_id = request.user.id
+
+    user_to_unfollow_id = User.objects.get(username=user).id
+    print('user_to_unfollow_id', user_to_unfollow_id)
+
+    # followed should be FALSE
+    # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models
+    # Remove the row with the current user and the user to unfollow from the database.
+    followed = Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_unfollow_id).delete()
+
+    # Send all necessary data to build profile.html again.
+    user_name = request.user
+
+    user = User.objects.get(id=user_id)
+    all_followers = len(user.following.all())
+    all_following = len(user.followers.all())
+    all_posts = user.user.all().order_by('-created')
+    signed_in_users = User.objects.filter(signed_in=True).exclude(id=user_id)
+    is_following = signed_in_users in user.following.all()
+
+    context = {          
+        'followed': followed,     
+        'user_name': user_name,
+        'all_followers': all_followers,
+        'all_following': all_following,
+        'all_posts': all_posts,
+        'signed_in_users': signed_in_users,
+        'is_following': is_following
+    }
+
+    # return HttpResponseRedirect(reverse('profile', args=(user_id,)))
+    return render(request, 'network/profile.html', context)
+
+
+"""
+Following Page: Display all posts made by users that the current user follows.
+This page should behave just as the “All Posts” page does, just with a more limited set of posts.
+This page should only be available to users who are signed in.
+
+"""
+
+# https://cs50.harvard.edu/web/2020/projects/2/commerce/#hints
+# https://docs.djangoproject.com/en/5.0/topics/auth/default/#the-login-required-decorator
+# Adding the @login_required decorator on top of any view will ensure that only a user who is logged in can access that view.
+@login_required
+def following(request, id):
+
+    # id = request.user.id
+
+    user = User.objects.get(id=id)
+    all_following = user.followers.all()
+    print('All Following', all_following)
+
+    all_following_ids = []
+    for i in all_following:
+        # Get the id for each user the current user follows.
+        # print('i', User.objects.get(username=i).id)
+        all_following_ids.append(User.objects.get(username=i).id)
+
+        print('All Following Ids', all_following_ids)
+
+    all_following_posts = [] # Returns a list inside another list. Requires a nested loop in following.html.
+    # Get all posts for each id in the list all_following_ids.
+    for i in all_following_ids:
+        all_following_posts.append(Post.objects.filter(author=i))
+
+        print('All Following Posts', all_following_posts)
+
+    # Research documentation below. This may be an alternative strategy to get the related data.
+    # https://stackoverflow.com/questions/13092268/how-do-you-join-two-tables-on-a-foreign-key-field-using-django-orm
+    # https://docs.djangoproject.com/en/5.0/ref/models/querysets/#select-related 
+    # for i in all_following:
+    #     all_following_posts = Post.objects.select_related('post').get(author=i)    
+    #     print('All Following Posts', all_following_posts)
+    # ValueError at /following1 Cannot query "Shirley": Must be "User" instance.
+           
+    context = {
+        'all_following_posts': all_following_posts
+    }
+
+    return render(request, 'network/following.html', context)
