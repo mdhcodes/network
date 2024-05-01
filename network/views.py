@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 from .models import User, Post, Follow
 
@@ -18,14 +19,20 @@ def index(request):
     https://docs.djangoproject.com/en/5.0/ref/models/querysets/#order-by - The negative sign in front of "-created" indicates descending order.
     """
     all_posts = Post.objects.all().order_by('-created')
-    print('All Index Posts:', all_posts )
+    # print('All Index Posts:', all_posts )
+
+    # Pagination - https://docs.djangoproject.com/en/5.0/topics/pagination/
+    paginator = Paginator(all_posts, 10) # Show 10 posts per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
     # Include the “New Post” form before “All Posts” on index.html. 
     form = CreatePostForm()
 
     context = {
         "all_posts": all_posts,
-        "form": form
+        "form": form,
+        "page_obj": page_obj
     }
 
     return render(request, "network/index.html", context)
@@ -149,6 +156,11 @@ def profile(request, id):
     all_posts = user.user.all().order_by('-created')
     # print('All Posts:', all_posts)
 
+    # Pagination - https://docs.djangoproject.com/en/5.0/topics/pagination/
+    paginator = Paginator(all_posts, 10) # Show 10 posts per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     # Get all users who are signed in.
     # If a user is signed in, signed_in == true. This list should not include the user on this page.
     # https://stackoverflow.com/questions/2354284/django-queries-how-to-filter-objects-to-exclude-id-which-is-in-a-list
@@ -206,7 +218,8 @@ def profile(request, id):
         'all_posts': all_posts,
         'signed_in_users': signed_in_users,
         # 'is_following': is_following,
-        'current_user_is_following_ids': current_user_is_following_ids
+        'current_user_is_following_ids': current_user_is_following_ids,
+        'page_obj': page_obj
     }
 
     return render(request, 'network/profile.html', context)
@@ -370,6 +383,11 @@ def following(request, id):
 
         print('All Following Posts', all_following_posts)
 
+    # Pagination - https://docs.djangoproject.com/en/5.0/topics/pagination/
+    paginator = Paginator(all_following_posts, 10) # Show 10 posts per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     # Research documentation below. This may be an alternative strategy to get the related data.
     # https://stackoverflow.com/questions/13092268/how-do-you-join-two-tables-on-a-foreign-key-field-using-django-orm
     # https://docs.djangoproject.com/en/5.0/ref/models/querysets/#select-related 
@@ -379,7 +397,8 @@ def following(request, id):
     # ValueError at /following1 Cannot query "Shirley": Must be "User" instance.
            
     context = {
-        'all_following_posts': all_following_posts
+        'all_following_posts': all_following_posts,
+        'page_obj': page_obj
     }
 
     return render(request, 'network/following.html', context)

@@ -17,7 +17,8 @@
     and the number of “likes” the post has. 
     {% endcomment %}
 
-    {% for post in all_posts %}
+    {% comment %} {% for post in all_posts %} {% endcomment %}
+    {% for post in page_obj %} {% comment %} Pagination {% endcomment %}
     <div class="posts">
         <p>Title: {{ post.title }}</p>
         <p>{{ post.post }}</p>
@@ -27,5 +28,48 @@
         <p><span class="fa-solid fa-heart" style="color: red;"></span>{{ post.likes }}</p>        
     </div>
     {% endfor %}
+
+    {% comment %} 
+    Pagination - Django - https://docs.djangoproject.com/en/5.0/topics/pagination/
+    {% endcomment %}
+    {% comment %} 
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+    
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+    
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endcomment %}
+
+     {% comment %} 
+    Pagination - https://getbootstrap.com/docs/5.3/components/pagination/
+    {% endcomment %}
+
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% endif %}
+
+            <li class="page-item page-link">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            {% endif %}
+        </ul>
+    </nav>
 
 {% endblock %}
