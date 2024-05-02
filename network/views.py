@@ -177,39 +177,8 @@ def profile(request, id):
     for i in current_user_is_following:
         current_user_is_following_ids.append(i)
 
-    print('current_user_is_following:', current_user_is_following)    
-    print('current_user_is_following_ids:', current_user_is_following_ids)
-
-    # is_following = signed_in_users in current_user_is_following.filter(user_follows=)
-    # is_following = Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_follow_id)
-
-    # is_following = {}
-    # for i in signed_in_users.values_list('id', flat=True):
-    #     # print('i:', i)
-    #     for j in current_user_is_following_ids:
-    #         # print('j:', j)
-    #         if i == j:
-    #             is_following[i] = True    
-        
-        # if i == Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=i):
-            # is_following.append(Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=i))
-
-    # for i in signed_in_users.values_list('id', flat=True):
-    #     for j in current_user_is_following:
-    #         # print('Signed in Users i:', i)
-    #         # print('Following j:', j)
-    #         # print('i and j:', i,j)
-    #         if i == j:
-    #             is_following.append(True)
-    #         else:
-    #             is_following.append(False) 
-
-    # is_following = all(i in signed_in_users for i in user.following.all())
-    # print('Is Following:', is_following)
-    
-    # print('User Following All:', user.following.all())
-    
-    # print('User Followers All:', user.followers.all())
+    # print('current_user_is_following:', current_user_is_following)    
+    # print('current_user_is_following_ids:', current_user_is_following_ids)    
 
     context = {
         'user_name': user_name,
@@ -217,7 +186,6 @@ def profile(request, id):
         'all_following': all_following,
         'all_posts': all_posts,
         'signed_in_users': signed_in_users,
-        # 'is_following': is_following,
         'current_user_is_following_ids': current_user_is_following_ids,
         'page_obj': page_obj
     }
@@ -244,19 +212,6 @@ def follow(request, user):
         user_follows_id=user_to_follow_id #following
     )
 
-    # followed should be TRUE   
-    # followed = Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_follow_id)
-    # print('Followed:', followed) # Returns all matches
-    # https://stackoverflow.com/questions/1387727/checking-for-empty-queryset-in-django
-    # Check if QuerySet is empty
-    # if not followed:
-    #     followed = False
-    # else:
-    #     followed = True
-
-    # print('Followed in Follow:', followed)
-
-
     user = User.objects.get(id=user_id) # ID for the current user.
     current_user_is_following = user.followers.values_list('user_follows_id', flat=True)
     current_user_is_following_ids = []
@@ -275,16 +230,13 @@ def follow(request, user):
     all_following = len(user.followers.all())
     all_posts = user.user.all().order_by('-created')
     signed_in_users = User.objects.filter(signed_in=True).exclude(id=user_id)
-    # is_following = signed_in_users in user.following.all()
 
     context = {           
-        # 'followed': followed,     
         'user_name': user_name,
         'all_followers': all_followers,
         'all_following': all_following,
         'all_posts': all_posts,
         'signed_in_users': signed_in_users,
-        # 'is_following': is_following
         'current_user_is_following_ids': current_user_is_following_ids
     }
 
@@ -299,18 +251,8 @@ def unfollow(request, user):
     user_to_unfollow_id = User.objects.get(username=user).id
     print('user_to_unfollow_id', user_to_unfollow_id)
 
-    # followed should be FALSE
     # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models
     # Remove the row with the current user and the user to unfollow from the database.
-    # followed = Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_unfollow_id).delete()
-    
-    # if not followed:
-    #     followed = False
-    # else:
-    #     followed = True
-
-    # print('Followed in Unfollow:', followed)
-
     Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_unfollow_id).delete()
 
     user = User.objects.get(id=user_id) # ID for the current user.
@@ -319,10 +261,8 @@ def unfollow(request, user):
     for i in current_user_is_following:
         current_user_is_following_ids.append(i)
 
-    print('current_user_is_following:', current_user_is_following)
-    
-    print('current_user_is_following_ids:', current_user_is_following_ids)
-    
+    # print('current_user_is_following:', current_user_is_following)    
+    # print('current_user_is_following_ids:', current_user_is_following_ids)    
 
     # Send all necessary data to build profile.html again.
     user_name = request.user
@@ -332,17 +272,14 @@ def unfollow(request, user):
     all_following = len(user.followers.all())
     all_posts = user.user.all().order_by('-created')
     signed_in_users = User.objects.filter(signed_in=True).exclude(id=user_id)
-    # is_following = signed_in_users in user.following.all()
 
-    context = {          
-        # 'followed': followed,     
+    context = {              
         'user_name': user_name,
         'all_followers': all_followers,
         'all_following': all_following,
         'all_posts': all_posts,
         'signed_in_users': signed_in_users,
         'current_user_is_following_ids': current_user_is_following_ids
-        # 'is_following': is_following
     }
 
     # return HttpResponseRedirect(reverse('profile', args=(user_id,)))
@@ -374,14 +311,14 @@ def following(request, id):
         # print('i', User.objects.get(username=i).id)
         all_following_ids.append(User.objects.get(username=i).id)
 
-        print('All Following Ids', all_following_ids)
+        # print('All Following Ids', all_following_ids)
 
     all_following_posts = [] # Returns a list inside another list. Requires a nested loop in following.html.
     # Get all posts for each id in the list all_following_ids.
     for i in all_following_ids:
         all_following_posts.append(Post.objects.filter(author=i))
 
-        print('All Following Posts', all_following_posts)
+        # print('All Following Posts', all_following_posts)
 
     # Pagination - https://docs.djangoproject.com/en/5.0/topics/pagination/
     paginator = Paginator(all_following_posts, 10) # Show 10 posts per page
@@ -402,3 +339,27 @@ def following(request, id):
     }
 
     return render(request, 'network/following.html', context)
+
+
+"""
+Edit Post: Users should be able to click an “Edit” button or link on any of their own posts to edit that post.
+When a user clicks “Edit” for one of their own posts, the content of their post should be replaced with a textarea where the user can edit the content of their post.
+The user should then be able to “Save” the edited post. Using JavaScript, you should be able to achieve this without requiring a reload of the entire page.
+For security, ensure that your application is designed such that it is not possible for a user, via any route, to edit another user’s posts.
+
+"""
+
+# After the Save button is clicked and the post request is sent, the edit function does not receive that request.
+# Print the errors with try/except?
+def edit(request, post_id):
+    print('Post ID:', post_id)
+    if request.method == "POST": 
+        # Get the post
+        post = Post.objects.filter(pk=post_id)
+        print('Post:', post)
+        edited_post = request.POST['update-post']
+        print('Edited Post:', edited_post)
+
+
+        # status=204 - No Content - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+        return HttpResponse(status=204) 

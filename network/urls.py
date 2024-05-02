@@ -17,5 +17,7 @@ urlpatterns = [
     # Add path to unfollow a user.
     path("unfollow/<str:user>", views.unfollow, name="unfollow"),
     # Add path to following page.
-    path("following<int:id>", views.following, name="following")
+    path("following<int:id>", views.following, name="following"),
+    # Add path to edit a post.
+    path("edit<int:post_id>", views.edit, name="edit")
 ]
