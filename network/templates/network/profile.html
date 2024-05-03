@@ -21,7 +21,8 @@
             <div class="edit-post-div" data-post="{{ post.id }}">
                 <form action="{% url 'edit' post.id %}" method="post">
                     {% csrf_token %}
-                    <textarea class="form-control edited-post" id="exampleFormControlTextarea1" rows=3 name="update-post" data-text="{{ post.id }}"></textarea>
+                    {% comment %} Textarea content does is not displayed in Firefox. Chrome displays textarea content correctly. {% endcomment %}
+                    <textarea class="form-control edited-post" id="exampleFormControlTextarea1" rows=3 name="update-post" data-text="{{ post.id }}">{{ post.post }}</textarea>
                     <button class="btn btn-primary" type="submit" data-save="{{ post.id }}">Save</button>
                 </form>
             </div>

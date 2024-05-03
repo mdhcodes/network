@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // When user clicks on the edit button, 
     const edit = document.querySelectorAll('.edit');
-
+    
     edit.forEach((btn) => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -71,52 +71,97 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (post_id === post_to_edit_data) { 
                     div.style.display = 'block';
                 }           
-
                 
             });
 
 
             const save_button = document.querySelectorAll('[data-save]');
-                save_button.forEach((btn) => {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        console.log(btn); // Returns the button that was just clicked.
+            save_button.forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // console.log('This save button was clicked:', btn); // Returns the button that was just clicked.
+                    
+                    console.log('Post id:', post_id, typeof(post_id));
+
+                    // Value of the edited post.
+                    // const post_revisions = document.querySelector(data-text="{{ post.id }}).value;
+                    const post_revisions = document.querySelector('[data-text='+ CSS.escape(post_id) +']').value;
+                    console.log('Post Revisions:', post_revisions);
+
+                    // Fetch error in python - Forbidden (CSRF token missing.): /edit/post_id
+                    // To fetch from JS you must include the CSRF token.
+                    // https://stackoverflow.com/questions/6506897/csrf-token-missing-or-incorrect-while-post-parameter-via-ajax-in-django
+                    // https://docs.djangoproject.com/en/5.0/howto/csrf/
+
+                    function getCookie(name) {
+                        let cookieValue = null;
+                        if (document.cookie && document.cookie !== '') {
+                            const cookies = document.cookie.split(';');
+                            for (let i = 0; i < cookies.length; i++) {
+                                const cookie = cookies[i].trim();
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    // Send a POST request to the /edit/post_id route with the value of post_revisions.
+                    fetch(`/edit/${post_id}`, {
+                        method: 'POST',
+                        headers: {'X-CSRFToken': getCookie('csrftoken')},
+                        body: JSON.stringify({ 
+                            post: post_revisions
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log('Result:', result)
+                    })
+
+
+                    // Hide the div stored in the const variable edit_post_div.
+                    edit_post_div.forEach((div) => {
+                        // If the post id === the edit div id, hide textarea for that post only.
+                        // console.log('Div id', div.dataset.post)
+                        const post_to_edit_data = parseInt(div.dataset.post)
+                        if (post_id === post_to_edit_data) { 
+                            div.style.display = 'none';                                
+                        }        
+
                         
-                        // Hide the div stored in the const variable edit_post_div.
-                        edit_post_div.forEach((div) => {
-                            // If the post id === the edit div id, hide textarea for that post only.
-                            // console.log('Div id', div.dataset.post)
-                            const post_to_edit_data = parseInt(div.dataset.post)
-                            if (post_id === post_to_edit_data) { 
-                                div.style.display = 'none';                                
-                            }        
+                        // Clear the textarea
+                        // https://stackoverflow.com/questions/15968911/how-to-clear-text-area-with-a-button-in-html-using-javascript
+                        const textarea = document.querySelectorAll('.edited-post') // 
+                        textarea.forEach((txt) => {
+                            const text_data = parseInt(txt.dataset.text)
+                            // console.log('Text data-text', text_data);
+                            if (post_id === text_data) {
+                                txt.value = '';
+                            }
+                        });                                              
 
-                            // Clear the textarea
-                            // https://stackoverflow.com/questions/15968911/how-to-clear-text-area-with-a-button-in-html-using-javascript
-                            const textarea = document.querySelectorAll('.edited-post') // 
-                            textarea.forEach((txt) => {
-                                const text_data = parseInt(txt.dataset.text)
-                                // console.log('Text data-text', text_data);
-                                if (post_id === text_data) {
-                                    txt.value = '';
-                                }
-                            });
+                        // Show edit button
+                        const edit_button = document.querySelectorAll('.edit');
+                        edit_button.forEach((btn) => {
+                            // If the post id === the edit button data-edit, hide edit button for that post only.
+                            // console.log('Edit data id', parseInt(btn.dataset.edit))
+                            const edit_button_data = parseInt(btn.dataset.edit);
+                            if (post_id === edit_button_data) {
+                                btn.style.display = 'block';
+                            }                            
 
-                            // Show edit button
-                            const edit_button = document.querySelectorAll('.edit');
-                            edit_button.forEach((btn) => {
-                                // If the post id === the edit button data-edit, hide edit button for that post only.
-                                // console.log('Edit data id', parseInt(btn.dataset.edit))
-                                const edit_button_data = parseInt(btn.dataset.edit);
-                                if (post_id === edit_button_data) {
-                                    btn.style.display = 'block';
-                                }
-                            });
-                        });
-                
+                        });  
+                    
                     });
             
-            
+                });
+        
+            });
+
             
             /*
             // Create this form here dynamically and send to the edit function.
@@ -157,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             
             
-            });
+            
         });      
 
     });

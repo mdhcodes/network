@@ -7,6 +7,10 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
+# Required for edit function.
+import json
+from django.http import JsonResponse
+
 from .models import User, Post, Follow
 
 from .forms import CreatePostForm
@@ -349,17 +353,24 @@ For security, ensure that your application is designed such that it is not possi
 
 """
 
-# After the Save button is clicked and the post request is sent, the edit function does not receive that request.
-# Print the errors with try/except?
 def edit(request, post_id):
-    print('Post ID:', post_id)
-    if request.method == "POST": 
-        # Get the post
-        post = Post.objects.filter(pk=post_id)
-        print('Post:', post)
-        edited_post = request.POST['update-post']
-        print('Edited Post:', edited_post)
 
+    if request.method == 'POST': 
+        # Edit post with the new data from the user. 
+        data = json.loads(request.body)
+        # print('Data:', data) 
+        # print('Post id:', post_id)
 
-        # status=204 - No Content - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-        return HttpResponse(status=204) 
+        # post_to_update = Post.objects.filter(pk=post_id) # Returns a QuerySet
+        post_to_update = Post.objects.get(pk=post_id) # Returns a single object
+        # print('Post to Update:', post_to_update)
+
+        revised_post = data['post']
+        # Set the Post object's post attribute equal to the revised post data from the user.
+        post_to_update.post = revised_post
+
+        # Save the revised post.
+        post_to_update.save()
+
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status - 201 Created
+        return JsonResponse({"message": "Post updated successfully."}, status=201)
