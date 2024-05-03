@@ -10,11 +10,13 @@
             <div class="posts">
                 {% comment %} {{ post }} - Extract QuerySet with a nested loop. {% endcomment %}
                 <p>Title: {{ post.title }}</p>
-                <p>{{ post.post }}</p>
+                <p data-body="{{ post.id }}">{{ post.post }}</p>
                 <p>Author: {{ post.author }}</p>
                 <p>{{ post.created }}</p>
                 {% comment %} <p><span style="color: red">&#x2764;</span>{{ post.likes }}</p> {% endcomment %}
                 <p><span class="fa-solid fa-heart" style="color: red;"></span>{{ post.likes }}</p>
+
+                <button class="like btn btn-light" data-like="{{ post.id }}" style="background: red; color: white;">Like</button>
             </div>
         {% endfor %}
     {% endfor %}

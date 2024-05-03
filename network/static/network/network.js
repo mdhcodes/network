@@ -151,11 +151,23 @@ document.addEventListener('DOMContentLoaded', function() {
                             // console.log('Edit data id', parseInt(btn.dataset.edit))
                             const edit_button_data = parseInt(btn.dataset.edit);
                             if (post_id === edit_button_data) {
-                                btn.style.display = 'block';
-                            }                            
-
+                                btn.style.display = 'inline-block';
+                            }  
                         });  
-                    
+
+                        
+                        // Replace post.innerHTML with the author's revisions.
+                        const post_body = document.querySelectorAll('[data-body]');
+                        
+                        post_body.forEach((p) => {
+                            // console.log('Post Body:', p)
+                            const p_data = parseInt(p.dataset.body);
+                            if (post_id === p_data) {
+                                p.innerHTML = post_revisions;
+                            }
+                        });
+                        
+
                     });
             
                 });
@@ -206,5 +218,64 @@ document.addEventListener('DOMContentLoaded', function() {
         });      
 
     });
+
+
+
+    // “Like” and “Unlike”: Users may click a button on any post to toggle whether or not they “like” that post.
+    // Using JavaScript, you should asynchronously let the server know to update the like count (as via a call to fetch) and 
+    // then update the post’s like count displayed on the page, without requiring a reload of the entire page.
+
+    // Store the like buttons in the varible called like.
+    const like = document.querySelectorAll('.like');
+
+    like.forEach((btn) => {
+        // If user clicks the like button...
+        btn.addEventListener('click', () => {
+
+            // Identify the button that was clicked.
+            const like_button = btn.dataset.like;
+            console.log('Btn was clicked', like_button); // Post id
+
+            // If the innerHTML is like
+            if (btn.innerHTML === 'Like') {
+
+                // Fetch error in python - Forbidden (CSRF token missing.): /edit/post_id
+                // To fetch from JS you must include the CSRF token.
+                // https://stackoverflow.com/questions/6506897/csrf-token-missing-or-incorrect-while-post-parameter-via-ajax-in-django
+                // https://docs.djangoproject.com/en/5.0/howto/csrf/
+
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            // Does this cookie string begin with the name we want?
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+
+
+                // The likes for that post increase by one.
+                // Send a PUT request to /like/post_id to increase the like score by 1.
+                // fetch()
+                
+                // The innerHTML for that Like button becomes Unlike.
+                // btn.innerHTML = 'Unlike'
+            // } else {
+                // The likes for that post decrease by one.
+    
+                // The innerHTML for that Unlike button becomes Like.
+            }        
+    
+        });
+    });
+
+
 
 });

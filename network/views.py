@@ -202,92 +202,94 @@ Follow and Unfollow Functions
 """
 
 def follow(request, user):
+    if request.method == "POST":
 
-    user_id = request.user.id
+        user_id = request.user.id
 
-    # user_to_follow = user # user == user_name and I need the user's id
-    user_to_follow_id = User.objects.get(username=user).id
-    # print('user_to_follow_id:', user_to_follow_id)
+        # user_to_follow = user # user == user_name and I need the user's id
+        user_to_follow_id = User.objects.get(username=user).id
+        # print('user_to_follow_id:', user_to_follow_id)
 
-    # https://medium.com/@abdullafajal/step-by-step-guide-to-implement-follow-unfollow-functionality-in-django-f98dd501aa36
-    # Create a row with the current user and the user to follow to the database.
-    Follow.objects.create(
-        following_user_id=user_id, #follower
-        user_follows_id=user_to_follow_id #following
-    )
+        # https://medium.com/@abdullafajal/step-by-step-guide-to-implement-follow-unfollow-functionality-in-django-f98dd501aa36
+        # Create a row with the current user and the user to follow to the database.
+        Follow.objects.create(
+            following_user_id=user_id, #follower
+            user_follows_id=user_to_follow_id #following
+        )
 
-    user = User.objects.get(id=user_id) # ID for the current user.
-    current_user_is_following = user.followers.values_list('user_follows_id', flat=True)
-    current_user_is_following_ids = []
-    for i in current_user_is_following:
-        current_user_is_following_ids.append(i)
+        user = User.objects.get(id=user_id) # ID for the current user.
+        current_user_is_following = user.followers.values_list('user_follows_id', flat=True)
+        current_user_is_following_ids = []
+        for i in current_user_is_following:
+            current_user_is_following_ids.append(i)
 
-    print('current_user_is_following:', current_user_is_following)
-    
-    print('current_user_is_following_ids:', current_user_is_following_ids)
+        print('current_user_is_following:', current_user_is_following)
+        
+        print('current_user_is_following_ids:', current_user_is_following_ids)
 
-    # Send all necessary data to build profile.html again.
-    user_name = request.user
+        # Send all necessary data to build profile.html again.
+        user_name = request.user
 
-    user = User.objects.get(id=user_id)
-    all_followers = len(user.following.all())
-    all_following = len(user.followers.all())
-    all_posts = user.user.all().order_by('-created')
-    signed_in_users = User.objects.filter(signed_in=True).exclude(id=user_id)
+        user = User.objects.get(id=user_id)
+        all_followers = len(user.following.all())
+        all_following = len(user.followers.all())
+        all_posts = user.user.all().order_by('-created')
+        signed_in_users = User.objects.filter(signed_in=True).exclude(id=user_id)
 
-    context = {           
-        'user_name': user_name,
-        'all_followers': all_followers,
-        'all_following': all_following,
-        'all_posts': all_posts,
-        'signed_in_users': signed_in_users,
-        'current_user_is_following_ids': current_user_is_following_ids
-    }
+        context = {           
+            'user_name': user_name,
+            'all_followers': all_followers,
+            'all_following': all_following,
+            'all_posts': all_posts,
+            'signed_in_users': signed_in_users,
+            'current_user_is_following_ids': current_user_is_following_ids
+        }
 
-    # return HttpResponseRedirect(reverse('profile', args=(user_id,))) # To send context to profile.html, I must render because reverse only returns a url string.
-    return render(request, 'network/profile.html', context)
+        # return HttpResponseRedirect(reverse('profile', args=(user_id,))) # To send context to profile.html, I must render because reverse only returns a url string.
+        return render(request, 'network/profile.html', context)
 
 
 def unfollow(request, user):
 
-    user_id = request.user.id
+    if request.method == "POST":
+        user_id = request.user.id
 
-    user_to_unfollow_id = User.objects.get(username=user).id
-    print('user_to_unfollow_id', user_to_unfollow_id)
+        user_to_unfollow_id = User.objects.get(username=user).id
+        print('user_to_unfollow_id', user_to_unfollow_id)
 
-    # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models
-    # Remove the row with the current user and the user to unfollow from the database.
-    Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_unfollow_id).delete()
+        # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models
+        # Remove the row with the current user and the user to unfollow from the database.
+        Follow.objects.filter(following_user_id=user_id).filter(user_follows_id=user_to_unfollow_id).delete()
 
-    user = User.objects.get(id=user_id) # ID for the current user.
-    current_user_is_following = user.followers.values_list('user_follows_id', flat=True)
-    current_user_is_following_ids = []
-    for i in current_user_is_following:
-        current_user_is_following_ids.append(i)
+        user = User.objects.get(id=user_id) # ID for the current user.
+        current_user_is_following = user.followers.values_list('user_follows_id', flat=True)
+        current_user_is_following_ids = []
+        for i in current_user_is_following:
+            current_user_is_following_ids.append(i)
 
-    # print('current_user_is_following:', current_user_is_following)    
-    # print('current_user_is_following_ids:', current_user_is_following_ids)    
+        # print('current_user_is_following:', current_user_is_following)    
+        # print('current_user_is_following_ids:', current_user_is_following_ids)    
 
-    # Send all necessary data to build profile.html again.
-    user_name = request.user
+        # Send all necessary data to build profile.html again.
+        user_name = request.user
 
-    user = User.objects.get(id=user_id)
-    all_followers = len(user.following.all())
-    all_following = len(user.followers.all())
-    all_posts = user.user.all().order_by('-created')
-    signed_in_users = User.objects.filter(signed_in=True).exclude(id=user_id)
+        user = User.objects.get(id=user_id)
+        all_followers = len(user.following.all())
+        all_following = len(user.followers.all())
+        all_posts = user.user.all().order_by('-created')
+        signed_in_users = User.objects.filter(signed_in=True).exclude(id=user_id)
 
-    context = {              
-        'user_name': user_name,
-        'all_followers': all_followers,
-        'all_following': all_following,
-        'all_posts': all_posts,
-        'signed_in_users': signed_in_users,
-        'current_user_is_following_ids': current_user_is_following_ids
-    }
+        context = {              
+            'user_name': user_name,
+            'all_followers': all_followers,
+            'all_following': all_following,
+            'all_posts': all_posts,
+            'signed_in_users': signed_in_users,
+            'current_user_is_following_ids': current_user_is_following_ids
+        }
 
-    # return HttpResponseRedirect(reverse('profile', args=(user_id,)))
-    return render(request, 'network/profile.html', context)
+        # return HttpResponseRedirect(reverse('profile', args=(user_id,)))
+        return render(request, 'network/profile.html', context)
 
 
 """
@@ -371,6 +373,36 @@ def edit(request, post_id):
 
         # Save the revised post.
         post_to_update.save()
+
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status - 201 Created
+        return JsonResponse({"message": "Post updated successfully."}, status=201)
+    
+
+"""
+“Like” and “Unlike”: Users may click a button on any post to toggle whether or not they “like” that post.
+Using JavaScript, you should asynchronously let the server know to update the like count (as via a call to fetch) and 
+then update the post’s like count displayed on the page, without requiring a reload of the entire page.
+"""
+
+def like(request, post_id):
+
+    if request.method == "POST":
+
+        # Edit post with the new data from the user. 
+        data = json.loads(request.body)
+        # print('Data:', data) 
+        # print('Post id:', post_id)
+
+        post_to_like = Post.objects.get(pk=post_id)
+        # print('Post to Like:', post_to_like)
+
+        liked_post = data['likes']
+        # Increase the Post object's likes attribute by 1.
+        # post_to_like + 1 
+
+        # Save the likes.
+        # post_to_like.save()
+
 
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status - 201 Created
         return JsonResponse({"message": "Post updated successfully."}, status=201)
