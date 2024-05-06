@@ -48,8 +48,8 @@
     </nav>
 
     {% comment %} Display number of followers the user has and the number of people the user follows. {% endcomment %}
-    <p>Number of Followers: {{ all_followers }}</p>
-    <p>Number Following: {{ all_following }}</p>
+    <p>Number of Followers: <span id="num-followers">{{ all_followers }}</span></p>
+    <p>Number Following: <span id="num-following">{{ all_following }}</span></p>
 
     {% comment %} 
     Display all other users who are signed in.
@@ -79,14 +79,14 @@
         <p class="follow">{{ user }}</p>
         {% comment %} If signed_in_user id is in current_user_is_following_ids, the current user is following them. {% endcomment %}
         {% if user.id in current_user_is_following_ids %}             
-            <form action="{% url 'unfollow' user %}" method="post" class="follow" id="follow"> 
+            <form action="{% url 'unfollow' user.id %}" method="post" class="follow"> 
                 {% csrf_token %} 
-                <button type="submit">Unfollow</button>
+                <button type="submit" id="unfollow" data-user="{{ user.id }}">Unfollow</button>
             </form>
         {% else %}             
-            <form action="{% url 'follow' user %}" method="post" class="follow" id="unfollow">
+            <form action="{% url 'follow' user.id %}" method="post" class="follow">
                 {% csrf_token %}  
-                <button type="submit">Follow</button>
+                <button type="submit" id="follow" data-user="{{ user.id }}">Follow</button>
             </form>
         {% endif %} 
     {% endfor %}    

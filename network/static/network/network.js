@@ -7,24 +7,124 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
+    // Follow and Unfollow a User
     // https://stackoverflow.com/questions/26107125/cannot-read-property-addeventlistener-of-null
     // network.js:4 Uncaught TypeError: Cannot read properties of null (reading 'addEventListener') at HTMLDocument.<anonymous> (network.js:4:40)
     const follow = document.querySelector('#follow');
     const unfollow = document.querySelector('#unfollow');
 
-    if (follow) {
-        follow.addEventListener('click', () => follow);
-        // follow.innerHTML = 'Unfollow';
-    } 
-    
-    if (unfollow) {
-        unfollow.addEventListener('click', () => unfollow);
-        // unfollow.innerHTML = 'Follow';
+    if (follow) { // Check for the button.
+        follow.addEventListener('click', (e) => {
+            e.preventDefault();
+            user_to_follow = follow.dataset.user;
+            console.log('User to follow id:', user_to_follow)
+
+            // Fetch error in python - Forbidden (CSRF token missing.): /edit/post_id
+            // To fetch from JS you must include the CSRF token.
+            // https://stackoverflow.com/questions/6506897/csrf-token-missing-or-incorrect-while-post-parameter-via-ajax-in-django
+            // https://docs.djangoproject.com/en/5.0/howto/csrf/
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            // Send a POST request to the /follow/user route with the values of user_following and following_user.
+            fetch(`/follow/${user_to_follow}`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': getCookie('csrftoken')},
+                body: JSON.stringify({
+                    user_follows: user_to_follow //following 
+                    // following_user: current_user //follower
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Result:', result)
+            })
+
+            // Update view without refreshing
+            // Update the innerHTML of the Follow button
+            follow.innerHTML = 'Unfollow';
+
+            // Update Number of Followers: {{ all_followers }}
+            num_following = document.getElementById('num-following');
+            console.log('Num Following', parseInt(num_following.innerHTML), typeof(num_following.innerHTML)) // String must be converted to a number to increase by 1.
+
+            num_following.innerHTML = parseInt(num_following.innerHTML) + 1; 
+            
+        });
     }
+        
+        
+    if (unfollow) { // Check for the button.   
+        unfollow.addEventListener('click', (e) => {
+            e.preventDefault(); 
+            user_to_unfollow = unfollow.dataset.user; 
+            console.log('User to unfollow id:', user_to_unfollow) 
+
+            // Fetch error in python - Forbidden (CSRF token missing.): /edit/post_id
+            // To fetch from JS you must include the CSRF token.
+            // https://stackoverflow.com/questions/6506897/csrf-token-missing-or-incorrect-while-post-parameter-via-ajax-in-django
+            // https://docs.djangoproject.com/en/5.0/howto/csrf/
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            // Send a POST request to the /unfollow/user route with the values of user_following and following_user.
+            fetch(`/unfollow/${user_to_unfollow}`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': getCookie('csrftoken')},
+                body: JSON.stringify({
+                    user_follows: user_to_unfollow, //following
+                    // following_user: current_user //follower
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Result:', result)
+            })
+
+            // Update view without refreshing
+            // Update the innerHTML of the Follow button
+            unfollow.innerHTML = 'Follow';
+
+            // Update Number Following: {{ all_following }}
+            num_following = document.getElementById('num-following');
+            console.log('Num Following', parseInt(num_following.innerHTML), typeof(num_following.innerHTML)) // String must be converted to a number to increase by 1.
+
+            num_following.innerHTML = parseInt(num_following.innerHTML) - 1;             
+
+        });
+    }
+
 
     // Edit Post
 
-    
 
     // When user clicks on the edit button, 
     const edit = document.querySelectorAll('.edit');

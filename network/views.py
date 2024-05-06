@@ -11,7 +11,7 @@ from django.core.paginator import Paginator
 import json
 from django.http import JsonResponse
 
-from .models import User, Post, Follow
+from .models import User, Post, Follow, Like
 
 from .forms import CreatePostForm
 
@@ -202,6 +202,29 @@ Follow and Unfollow Functions
 """
 
 def follow(request, user):
+
+    if request.method == 'POST':
+        
+        print('User:', user)
+        
+        current_user_id = request.user.id
+        print('Current User:', current_user_id)
+        user_to_follow_id = user
+        print('User to Follow:', user_to_follow_id)
+
+        # https://medium.com/@abdullafajal/step-by-step-guide-to-implement-follow-unfollow-functionality-in-django-f98dd501aa36
+        # Create a row with the current user and the user to follow to the database.
+        Follow.objects.create(
+            following_user_id = current_user_id, #follower
+            user_follows_id= user_to_follow_id #following
+        )
+
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status - 201 Created
+        return JsonResponse({"message": "Post followed successfully."}, status=201)
+    
+
+"""
+def follow(request, user):
     if request.method == "POST":
 
         user_id = request.user.id
@@ -247,8 +270,29 @@ def follow(request, user):
 
         # return HttpResponseRedirect(reverse('profile', args=(user_id,))) # To send context to profile.html, I must render because reverse only returns a url string.
         return render(request, 'network/profile.html', context)
+"""
 
 
+def unfollow(request, user):
+
+    if request.method == 'POST':
+
+        print('User:', user)
+        
+        current_user_id = request.user.id
+        print('Current User:', current_user_id)
+        user_to_unfollow_id = user
+        print('User to Unfollow:', user_to_unfollow_id)
+
+        # https://stackoverflow.com/questions/3805958/how-to-delete-a-record-in-django-models
+        # Remove the row with the current user and the user to unfollow from the database.
+        Follow.objects.filter(following_user_id=current_user_id).filter(user_follows_id=user_to_unfollow_id).delete()
+        
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status - 201 Created
+        return JsonResponse({"message": "Post unfollowed successfully."}, status=201)
+    
+
+"""
 def unfollow(request, user):
 
     if request.method == "POST":
@@ -290,7 +334,7 @@ def unfollow(request, user):
 
         # return HttpResponseRedirect(reverse('profile', args=(user_id,)))
         return render(request, 'network/profile.html', context)
-
+"""
 
 """
 Following Page: Display all posts made by users that the current user follows.
@@ -383,7 +427,7 @@ def edit(request, post_id):
 Using JavaScript, you should asynchronously let the server know to update the like count (as via a call to fetch) and 
 then update the post’s like count displayed on the page, without requiring a reload of the entire page.
 """
-
+# Ability to 'Like' only when user is logged in.
 def like(request, post_id):
 
     if request.method == "POST":
@@ -391,16 +435,24 @@ def like(request, post_id):
         # Edit post with the new data from the user. 
         data = json.loads(request.body)
         # print('Data:', data) 
-        # print('Post id:', post_id)
+        print('Post id:', post_id)
 
-        post_to_like = Post.objects.get(pk=post_id)
+        # add_like = Post.objects.get(pk=post_id)
         # print('Post to Like:', post_to_like)
 
-        liked_post = data['likes']
+        # liked_post = data['like']
         # Increase the Post object's likes attribute by 1.
         # post_to_like + 1 
 
         # Save the likes.
+        # post_to_like.save()
+
+        # Save the user and the post they liked in the Like table.
+        # post_to_like = Like(
+            # like = post_id,
+            # user = request.user.id
+        # )
+
         # post_to_like.save()
 
 
