@@ -124,8 +124,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // Edit Post
-
-
     // When user clicks on the edit button, 
     const edit = document.querySelectorAll('.edit');
     
@@ -149,9 +147,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const post = document.querySelector('[data-post='+ CSS.escape(post_id) +']')
             console.log('post:', post);
 
-            // Remove the edit button
-            // btn.remove();
-
             // Hide the edit button
             const edit_button = document.querySelectorAll('.edit');
             edit_button.forEach((btn) => {
@@ -170,8 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const post_to_edit_data = parseInt(div.dataset.post)
                 if (post_id === post_to_edit_data) { 
                     div.style.display = 'block';
-                }           
-                
+                }                          
             });
 
 
@@ -230,9 +224,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         const post_to_edit_data = parseInt(div.dataset.post)
                         if (post_id === post_to_edit_data) { 
                             div.style.display = 'none';                                
-                        }        
+                        }      
 
-                        
                         // Clear the textarea
                         // https://stackoverflow.com/questions/15968911/how-to-clear-text-area-with-a-button-in-html-using-javascript
                         const textarea = document.querySelectorAll('.edited-post') // 
@@ -265,60 +258,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (post_id === p_data) {
                                 p.innerHTML = post_revisions;
                             }
-                        });
-                        
+                        });                        
 
                     });
             
                 });
         
-            });
-
-            
-            /*
-            // Create this form here dynamically and send to the edit function.
-            const form = document.createElement('form');
-            // https://forum.djangoproject.com/t/generate-dynamic-url-js-to-template/10138
-            // https://stackoverflow.com/questions/17364632/java-generating-strings-with-placeholders
-
-            // !!!!!! Unable to set url. Error - Page not found (404) - The current path, {% url 'edit' post_id %}, didn’t match any of those within the view.  !!!!!!
-            // ********** https://stackoverflow.com/questions/59752034/django-url-tag-not-working-when-dynamically-loading-the-page **********
-            // form.setAttribute('action', `{% url 'edit' post_id %}`)
-            form.setAttribute('action', `{% url 'edit' ${post_id} %}`)
-            form.setAttribute('method', 'post')
-
-            // https://stackoverflow.com/questions/42733761/how-to-properly-append-django-csrf-token-to-form-in-inline-javascript
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'csrfmiddlewaretoken';
-            input.value = '{% csrf_token %}';
-            form.append(input);
-
-            const text = document.createElement('textarea');
-            text.classList.add('form-control');
-            text.setAttribute('id', 'exampleFormControlTextarea1');
-            text.setAttribute('rows', '3');                        
-
-            const button = document.createElement('button'); 
-            button.setAttribute('type', 'submit');
-            button.classList.add('btn');
-            button.classList.add('btn-primary');
-            button.innerHTML = 'Save';
-
-            form.append(text);
-            form.append(button);
-
-            post.append(form);
-            */
-            
-
-            
-            
+            });            
             
         });      
 
     });
-
 
 
     // “Like” and “Unlike”: Users may click a button on any post to toggle whether or not they “like” that post.
@@ -327,55 +277,100 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Store the like buttons in the varible called like.
     const like = document.querySelectorAll('.like');
+    const unlike = document.querySelectorAll('.unlike');
 
     like.forEach((btn) => {
         // If user clicks the like button...
         btn.addEventListener('click', () => {
-
             // Identify the button that was clicked.
-            const like_button = btn.dataset.like;
-            console.log('Btn was clicked', like_button); // Post id
+            const like_button = parseInt(btn.dataset.like);
+            console.log('Like Btn was clicked', like_button, typeof(like_button)); // like_button = Post id
 
-            // If the innerHTML is like
-            if (btn.innerHTML === 'Like') {
+            // Fetch error in python - Forbidden (CSRF token missing.): /edit/post_id
+            // To fetch from JS you must include the CSRF token.
+            // https://stackoverflow.com/questions/6506897/csrf-token-missing-or-incorrect-while-post-parameter-via-ajax-in-django
+            // https://docs.djangoproject.com/en/5.0/howto/csrf/
 
-                // Fetch error in python - Forbidden (CSRF token missing.): /edit/post_id
-                // To fetch from JS you must include the CSRF token.
-                // https://stackoverflow.com/questions/6506897/csrf-token-missing-or-incorrect-while-post-parameter-via-ajax-in-django
-                // https://docs.djangoproject.com/en/5.0/howto/csrf/
-
-                function getCookie(name) {
-                    let cookieValue = null;
-                    if (document.cookie && document.cookie !== '') {
-                        const cookies = document.cookie.split(';');
-                        for (let i = 0; i < cookies.length; i++) {
-                            const cookie = cookies[i].trim();
-                            // Does this cookie string begin with the name we want?
-                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                                break;
-                            }
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
                         }
                     }
-                    return cookieValue;
                 }
+                return cookieValue;
+            }
 
-
-                // The likes for that post increase by one.
-                // Send a PUT request to /like/post_id to increase the like score by 1.
-                // fetch()
-                
-                // The innerHTML for that Like button becomes Unlike.
-                // btn.innerHTML = 'Unlike'
-            // } else {
-                // The likes for that post decrease by one.
-    
-                // The innerHTML for that Unlike button becomes Like.
-            }        
-    
-        });
+            // The likes for that post increase by one.
+            // Send a PUT request to /like/post_id to increase the like score by 1.
+            fetch(`/like/${like_button}`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': getCookie('csrftoken')},
+                body: JSON.stringify({
+                    likes: 1
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Result', result);
+                // https://www.freecodecamp.org/news/javascript-refresh-page-how-to-reload-a-page-in-js/
+                // "This can be useful when you want to ensure that you get the latest content from the server, even if the page is cached."
+                this.location.reload(true)
+            })
+        })
     });
 
+    unlike.forEach((btn) => {
+        // If user clicks the like button...
+        btn.addEventListener('click', () => {
+            // Identify the button that was clicked.
+            const unlike_button = parseInt(btn.dataset.unlike);
+            console.log('Unlike Btn was clicked', unlike_button, typeof(unlike_button)); // unlike_button = Post id
 
+            // Fetch error in python - Forbidden (CSRF token missing.): /edit/post_id
+            // To fetch from JS you must include the CSRF token.
+            // https://stackoverflow.com/questions/6506897/csrf-token-missing-or-incorrect-while-post-parameter-via-ajax-in-django
+            // https://docs.djangoproject.com/en/5.0/howto/csrf/
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            // The likes for that post decrease by one.
+            // Send a PUT request to /like/post_id to increase the like score by 1.
+            fetch(`/unlike/${unlike_button}`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': getCookie('csrftoken')},
+                body: JSON.stringify({
+                    likes: -1
+                })
+            })            
+            .then(response => response.json())
+            .then(result => {
+                console.log('Result', result);
+                // https://www.freecodecamp.org/news/javascript-refresh-page-how-to-reload-a-page-in-js/
+                // "This can be useful when you want to ensure that you get the latest content from the server, even if the page is cached."
+                this.location.reload(true)
+            })
+        })
+    });
 
 });

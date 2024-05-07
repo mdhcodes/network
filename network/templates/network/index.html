@@ -26,9 +26,15 @@
         <p>Author: {{ post.author }}</p>
         <p>{{ post.created }}</p>
         {% comment %} <p><span style="color: red">&#x2764;</span>{{ post.likes }}</p> {% endcomment %}
-        <p><span class="fa-solid fa-heart" style="color: red;"></span>{{ post.likes }}</p>
+        <p><span class="fa-solid fa-heart" style="color: red;"></span><span class="num-likes">{{ post.likes }}</span></p>
         
-        <button class="like btn btn-light" data-like="{{ post.id }}" style="background: red; color: white;">Like</button>  
+        {% if user.is_authenticated %}
+            {% if post.id in current_user_liked_posts %} 
+                <button class="unlike btn btn-light" data-unlike="{{ post.id }}" style="background: red; color: white;">Unlike</button>
+            {% else %}
+                <button class="like btn btn-light" data-like="{{ post.id }}" style="background: red; color: white;">Like</button>
+            {% endif %}
+        {% endif %}
         
         {% comment %} Add an edit button to the post if the id of the author of the post is equal to the current user. {% endcomment %}
         {% if post.author.id == user.id %}         

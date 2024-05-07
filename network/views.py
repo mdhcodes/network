@@ -11,9 +11,12 @@ from django.core.paginator import Paginator
 import json
 from django.http import JsonResponse
 
+from django.db.models import F
+
 from .models import User, Post, Follow, Like
 
 from .forms import CreatePostForm
+
 
 
 def index(request):
@@ -24,6 +27,12 @@ def index(request):
     """
     all_posts = Post.objects.all().order_by('-created')
     # print('All Index Posts:', all_posts )
+
+    # Check if current user has liked a post.
+    # Display all of the posts this user likes. # Return post ID    
+    # Get the like_id (liked post id) column from the Like table where the current user has liked that post.
+    current_user_liked_posts = Like.objects.values_list('like_id', flat=True).filter(user_id=request.user.id) # Returns like or post id
+    print('All Liked Posts id:', current_user_liked_posts)
 
     # Pagination - https://docs.djangoproject.com/en/5.0/topics/pagination/
     paginator = Paginator(all_posts, 10) # Show 10 posts per page
@@ -36,7 +45,8 @@ def index(request):
     context = {
         "all_posts": all_posts,
         "form": form,
-        "page_obj": page_obj
+        "page_obj": page_obj,
+        "current_user_liked_posts": current_user_liked_posts
     }
 
     return render(request, "network/index.html", context)
@@ -158,7 +168,7 @@ def profile(request, id):
 
     # Display all of the posts for that user, in reverse chronological order.
     all_posts = user.user.all().order_by('-created')
-    # print('All Posts:', all_posts)
+    print('All Posts:', all_posts)
 
     # Pagination - https://docs.djangoproject.com/en/5.0/topics/pagination/
     paginator = Paginator(all_posts, 10) # Show 10 posts per page
@@ -182,7 +192,13 @@ def profile(request, id):
         current_user_is_following_ids.append(i)
 
     # print('current_user_is_following:', current_user_is_following)    
-    # print('current_user_is_following_ids:', current_user_is_following_ids)    
+    # print('current_user_is_following_ids:', current_user_is_following_ids)  
+
+    # Check if current user has liked a post.
+    # Display all of the posts this user likes. # Return post ID    
+    # Get the like_id (liked post id) column from the Like table where the current user has liked that post.
+    current_user_liked_posts = Like.objects.values_list('like_id', flat=True).filter(user_id=id) # Returns like id
+    print('All Liked Posts id:', current_user_liked_posts)
 
     context = {
         'user_name': user_name,
@@ -191,7 +207,8 @@ def profile(request, id):
         'all_posts': all_posts,
         'signed_in_users': signed_in_users,
         'current_user_is_following_ids': current_user_is_following_ids,
-        'page_obj': page_obj
+        'page_obj': page_obj,
+        'current_user_liked_posts': current_user_liked_posts
     }
 
     return render(request, 'network/profile.html', context)
@@ -428,33 +445,68 @@ Using JavaScript, you should asynchronously let the server know to update the li
 then update the post’s like count displayed on the page, without requiring a reload of the entire page.
 """
 # Ability to 'Like' only when user is logged in.
+@login_required
 def like(request, post_id):
 
     if request.method == "POST":
 
         # Edit post with the new data from the user. 
         data = json.loads(request.body)
-        # print('Data:', data) 
-        print('Post id:', post_id)
+        print('Data:', data) 
+        print('Post id:', post_id, type(post_id))
 
-        # add_like = Post.objects.get(pk=post_id)
-        # print('Post to Like:', post_to_like)
-
-        # liked_post = data['like']
+        like_post = Post.objects.get(pk=post_id)
+        print('Like Post:', like_post)
+        
+        update_likes = data['likes']
+        print('Update Likes:', update_likes, type(update_likes))
         # Increase the Post object's likes attribute by 1.
-        # post_to_like + 1 
+        # https://docs.djangoproject.com/en/5.0/ref/models/expressions/#f-expressions
+        like_post.likes = F('likes') + update_likes
 
         # Save the likes.
-        # post_to_like.save()
+        like_post.save()
 
-        # Save the user and the post they liked in the Like table.
-        # post_to_like = Like(
-            # like = post_id,
-            # user = request.user.id
-        # )
+        # "To access the new value saved this way, the object must be reloaded:"
+        like_post.refresh_from_db()
 
-        # post_to_like.save()
-
-
+        # Create the row/Save the user and the post they liked in the Like table.
+        Like.objects.create(
+            like_id = post_id,
+            user_id = request.user.id
+        )
+        
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status - 201 Created
-        return JsonResponse({"message": "Post updated successfully."}, status=201)
+        return JsonResponse({"message": "Like updated successfully."}, status=201)
+    
+
+@login_required
+def unlike(request, post_id):
+
+    if request.method == "POST":
+
+        # Edit post with the new data from the user. 
+        data = json.loads(request.body)
+        print('Data:', data) 
+        print('Post id:', post_id)
+               
+        unlike_post = Post.objects.get(pk=post_id)
+        print('Like Post:', unlike_post)
+        
+        update_likes = data['likes']
+        print('Update Likes:', update_likes, type(update_likes))
+        # Decrease the Post object's likes attribute by 1.
+        # https://docs.djangoproject.com/en/5.0/ref/models/expressions/#f-expressions
+        unlike_post.likes = F('likes') + update_likes
+
+        # Save the likes
+        unlike_post.save()
+
+        # "To access the new value saved this way, the object must be reloaded:"
+        unlike_post.refresh_from_db()
+
+        # Delete the row with this user and this post they liked in the Like table.
+        Like.objects.filter(like=post_id).filter(user=request.user.id).delete()
+        
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status - 201 Created
+        return JsonResponse({"message": "Unlike updated successfully."}, status=201) 

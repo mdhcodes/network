@@ -21,5 +21,7 @@ urlpatterns = [
     # Add path to edit a post.
     path("edit/<int:post_id>", views.edit, name="edit"),
     # Add path to like a post.
-    path("like/<int:post_id>", views.like, name="like")
+    path("like/<int:post_id>", views.like, name="like"),
+    # Add path to unlike a post.
+    path("unlike/<int:post_id>", views.unlike, name="unlike")
 ]

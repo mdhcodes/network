@@ -5,19 +5,29 @@
 
     <h2>{{ user_name }}'s Profile Page</h2>
 
+    {% comment %}
+    {% for user_liked_posts in current_user_liked_posts %}
+        {{ user_liked_posts.like_id }} <!-- Returns post id -->
+    {% endfor %}
+    {% endcomment %}
+
     {% comment %} Display all of the posts for that user, in reverse chronological order. {% endcomment %}
     {% comment %} {% for post in all_posts %} {% endcomment %}
     {% for post in page_obj %} {% comment %} Pagination {% endcomment %}
         <div class="posts" data-post="{{ post.id }}">
-            <p>Title: {{ post.title }}</p>
+            <p>Title: {{ post.title }} {{ post.id }}</p>
             <p data-body="{{ post.id }}">{{ post.post }}</p>
             <p>Author: {{ post.author }}</p>
             <p>{{ post.created }}</p>
             {% comment %} <p><span style="color: red">&#x2764;</span>{{ post.likes }}</p> {% endcomment %}
-            <p><span class="fa-solid fa-heart" style="color: red;"></span>{{ post.likes }}</p>
+            <p><span class="fa-solid fa-heart" style="color: red;"></span><span class="num-likes">{{ post.likes }}</span></p>
 
-            <button class="like btn btn-light" data-like="{{ post.id }}" style="background: red; color: white;">Like</button>
-            
+            {% if post.id in current_user_liked_posts %} 
+                <button class="unlike btn btn-light" data-unlike="{{ post.id }}" style="background: red; color: white;">Unlike</button>
+            {% else %}
+                <button class="like btn btn-light" data-like="{{ post.id }}" style="background: red; color: white;">Like</button>
+            {% endif %}
+
             {% comment %} Add an edit button to the current user's posts. {% endcomment %}
             <button class="edit btn btn-primary" data-edit="{{ post.id }}" type="submit">Edit</button>
             <div class="edit-post-div" data-post="{{ post.id }}">
